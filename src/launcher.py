@@ -4,7 +4,7 @@ import subprocess
 import argparse
 from urllib.parse import urlparse
 import sys
-import PySimpleGUI as sg
+import tkinter as tk
 
 webBrowsers = [
     "firefox",
@@ -16,6 +16,9 @@ webBrowsers = [
     "midori",
     "vivaldi"
 ]
+
+window = tk.Tk()
+
 
 def http_url(url):
     if url.startswith('http://'):
@@ -51,7 +54,10 @@ def getInstalledBrowsers():
                 installedBrowsers.append(browser)
     return installedBrowsers
 
-
+def buttonCallback():
+    print("callback ")
+    global window
+    window.quit()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -68,21 +74,15 @@ if __name__ == '__main__':
     installedBrowsers = getInstalledBrowsers()
     print(installedBrowsers)
 
-    sgLayout = [
-        [ sg.Button(b, key=b) for b in installedBrowsers ]
-    ]
+ 
+    window.overrideredirect(True)
+    window.wait_visibility(window)
+    window.wm_attributes("-alpha", 0.5)
 
-    window = sg.Window('', sgLayout)
-    while True:
-        event, values = window.read()
-        if event == sg.WIN_CLOSED:
-            break
-        else:
-            element = window[event]
-            browser = element.Key
-            break
-    
-    window.close()
+    for b in installedBrowsers:
+        tk.Button(window, text=b, image='', command=buttonCallback).pack()
+
+    window.mainloop()
 
     cmd = [browser, args.url]
     subprocess.Popen(cmd)
