@@ -55,7 +55,6 @@ def getInstalledBrowsers():
     return installedBrowsers
 
 def buttonCallback():
-    print("callback ")
     global window
     window.quit()
 
@@ -74,13 +73,14 @@ if __name__ == '__main__':
     installedBrowsers = getInstalledBrowsers()
     print(installedBrowsers)
 
- 
+    ffImage = tk.PhotoImage(file =r'/home/thomas/http-pick/assets/firefox.png', width=100, height=100)
+
     window.overrideredirect(True)
     window.wait_visibility(window)
-    window.wm_attributes("-alpha", 0.5)
+    window.wm_attributes("-alpha", 1)
 
     for b in installedBrowsers:
-        tk.Button(window, text=b, image='', command=buttonCallback).pack()
+        tk.Button(window, text=b, image=ffImage, command=buttonCallback).pack()
 
     window.mainloop()
 
