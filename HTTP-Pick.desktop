@@ -1,0 +1,15 @@
+[Desktop Entry]
+Name=HTTP Pick
+Comment=A http/https handler that lets you pick the web browser you want to use
+Categories=GNOME;GTK;Network;WebBrowser;
+Icon=internet-web-browser
+TryExec=http-pick
+Exec=http-pick -u %u
+Type=Application
+Terminal=false
+MimeType=x-scheme-handler/http;x-scheme-handler/https
+Actions=settings;
+
+[Desktop Action settings]
+Name=Configure HTTP Pick
+Exec=http-pick -s
