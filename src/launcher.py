@@ -4,21 +4,24 @@ import subprocess
 import argparse
 from urllib.parse import urlparse
 import sys
-import tkinter as tk
+from PyQt5.QtWidgets import QApplication
+from pickergui import MainWindow
+from util import getInstalledBrowsers, getMousePosition
 
-webBrowsers = [
-    "firefox",
-    "chromium",
-    "google-chrome",
-    "opera",
-    "epiphany",
-    "epiphany-browser",
-    "midori",
-    "vivaldi"
-]
+#user controlled settings
+ICON_SIZE = 72
+DISPLAY_APP_NAME = True
+INSTALLED_BROWSERS_CACHE = []
 
-window = tk.Tk()
 
+def launchBroswer(browser):
+    if '/' in browser: #'Normal' launch path
+        cmd = [browser, args.url]
+    elif '.' in browser: #Flatpak ref
+        cmd = ["flatpak", "run", browser, args.url]
+    print(cmd)
+    subprocess.Popen(cmd)
+    sys.exit(0)
 
 def http_url(url):
     if url.startswith('http://'):
@@ -30,60 +33,37 @@ def http_url(url):
         raise argparse.ArgumentTypeError(
             "not an HTTP/HTTPS URL: '{}'".format(url))
 
-def getInstalledBrowsers():
-    #Check with update-alternatives
-    browsers = subprocess.getoutput('update-alternatives --list x-www-browser').split()
-    #print(browsers)
-
-    #Check snaps
-    snaps = subprocess.getoutput('snap list | awk \'{ print $1 }\'').split()
-    del snaps[0]
-    snaps = ["/snap/bin/" + s for s in snaps]
-    #print(snaps)
-
-    #Check flatpaks
-    #flatpaks = subprocess.getoutput('flatpak list --app | awk \'{ print $2 }\'').split()
-    #print(flatpaks)
-
-    browsers.extend(snaps)
-
-    installedBrowsers = []
-    for browser in browsers:
-        for wb in webBrowsers:
-            if wb in browser:
-                installedBrowsers.append(browser)
-    return installedBrowsers
-
-def buttonCallback():
-    global window
-    window.quit()
+def settings():
+    print("Settings flag used. Opening configuration window")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Handler for http/https URLs.'
     )
     parser.add_argument(
-        'url',
+        '-u',
+        '--url',
         type=http_url,
         help="URL starting with 'http://' or 'https://'",
     )
+    parser.add_argument(
+        '-s',
+        '--settings',
+        action='store_true',
+        help="Show settings window",
+    )
     args = parser.parse_args()
+    
+    if(args.settings):
+        settings()
+    else:
+        urlparse(args.url)
+        installedBrowsers = getInstalledBrowsers()
 
-    parsed = urlparse(args.url)
-    installedBrowsers = getInstalledBrowsers()
-    print(installedBrowsers)
+        mx,my = getMousePosition()
 
-    ffImage = tk.PhotoImage(file =r'/home/thomas/http-pick/assets/firefox.png', width=100, height=100)
-
-    window.overrideredirect(True)
-    window.wait_visibility(window)
-    window.wm_attributes("-alpha", 1)
-
-    for b in installedBrowsers:
-        tk.Button(window, text=b, image=ffImage, command=buttonCallback).pack()
-
-    window.mainloop()
-
-    cmd = [browser, args.url]
-    subprocess.Popen(cmd)
-    sys.exit(0)
+        app = QApplication(sys.argv)
+        mainWin = MainWindow(installedBrowsers, iconsize=ICON_SIZE, displayappname=DISPLAY_APP_NAME, x=mx, y=my, callback=launchBroswer)
+        mainWin.show()
+        app.focusChanged.connect(mainWin.on_focusChanged)
+        app.exec()
