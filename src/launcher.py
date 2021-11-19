@@ -6,11 +6,12 @@ from urllib.parse import urlparse
 import sys
 from PyQt5.QtWidgets import QApplication
 from pickergui import MainWindow
+from settingsgui import SettingsWindow
 from util import getInstalledBrowsers, getMousePosition
 
 #user controlled settings
 ICON_SIZE = 72
-DISPLAY_APP_NAME = True
+DISPLAY_APP_NAME = False
 INSTALLED_BROWSERS_CACHE = []
 
 
@@ -19,9 +20,8 @@ def launchBroswer(browser):
         cmd = [browser, args.url]
     elif '.' in browser: #Flatpak ref
         cmd = ["flatpak", "run", browser, args.url]
-    print(cmd)
     subprocess.Popen(cmd)
-    sys.exit(0)
+    quit()
 
 def http_url(url):
     if url.startswith('http://'):
@@ -32,10 +32,7 @@ def http_url(url):
         print("Not an HTTP/HTTPS URL.")
         raise argparse.ArgumentTypeError(
             "not an HTTP/HTTPS URL: '{}'".format(url))
-
-def settings():
-    print("Settings flag used. Opening configuration window")
-
+  
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Handler for http/https URLs.'
@@ -55,7 +52,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     if(args.settings):
-        settings()
+        app = QApplication(sys.argv)
+        settingsWin = SettingsWindow(iconsize=ICON_SIZE)
+        settingsWin.setWindowTitle("HTTP Pick - Settings")
+        settingsWin.show()
+        sys.exit(app.exec())
     else:
         urlparse(args.url)
         installedBrowsers = getInstalledBrowsers()
@@ -66,4 +67,4 @@ if __name__ == '__main__':
         mainWin = MainWindow(installedBrowsers, iconsize=ICON_SIZE, displayappname=DISPLAY_APP_NAME, x=mx, y=my, callback=launchBroswer)
         mainWin.show()
         app.focusChanged.connect(mainWin.on_focusChanged)
-        app.exec()
+        sys.exit(app.exec())

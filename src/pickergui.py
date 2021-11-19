@@ -43,4 +43,4 @@ class MainWindow(QMainWindow):
     
     def on_focusChanged(self):
         if(self.isActiveWindow() == False):
-            sys.exit(0)
+            quit()
